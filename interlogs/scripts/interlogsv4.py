@@ -37,6 +37,7 @@ def get_ppi(src):
         ppi_dict[ppi] = {
         "gene_id": ppi,
         'symbol': symbol,
+        'CA_ortholog': None,
         }
         #ppi[tuple([i[0], i[1]])] = val
     return ppi_dict
@@ -251,11 +252,11 @@ def add_geneid(ddp, res):
     return ddp
 
 
-filename= "HumanBinary_All.txt"
-p = get_seq_ppi(filename)
+
 
 
 filename2= "CA_HU.txt"
+
 def uni_ann(ddp):
     ids = []
     '''ddp is ca:hu dict'''
@@ -266,5 +267,66 @@ def uni_ann(ddp):
     res = pull_uni(ids)
     d = add_geneid(dd, res)
     return d
+
+def get_hu2ca_dict(ddp):
+    hu_ca_dict = {}
+    for k in ddp.keys():
+        entry = ddp[k]
+        for eid in entry['geneid']:
+            hu_ca_dict[eid] = entry['ca']
+    return hu_ca_dict
+
+def add_orthologs(p, hu2ca):
+    '''p is human ppi data,
+    hurca is human entrex id to CA ortholog mapping'''
+    for i, j in p.keys():
+        entry = p[i,j]
+        A = hu2ca.get(i)
+        B = hu2ca.get(j)
+        if (A != None and B != None):
+            entry['CA_ortholog'] = (A, B)
+
+def make_interalogs(p, ddp):
+    '''p is hum interaction data,
+    ddp is ca to hu dict with ann'''
+    interalogs = {}
+    for k in p.keys():
+        entry = p[k]
+        if entry['CA_ortholog'] != None:
+            interalogs[(entry['CA_ortholog'])] = p[k]
+    for x, y in interalogs.keys():
+        entry = interalogs[x,y]
+        entry['A,B'] = (ddp[x]['hu'], ddp[y]['hu'])
+    return interalogs
+
+def make_interalogs2(p, ddp):
+    '''p is hum interaction data,
+    ddp is ca to hu dict with ann'''
+    inter2 = {}
+    for k in p.keys():
+        entry = p[k]
+        if entry['CA_ortholog'] != None:
+            inter2[(entry['CA_ortholog'])] = p[k]
+    for x, y in inter2.keys():
+        entry = inter2[x,y]
+        entry['A'] = ddp[x]['hu']
+        entry['B'] = ddp[y]['hu']
+    return inter2
+
+filename= "HumanBinary_All.txt"
+p = get_seq_ppi(filename)
+
+filename2= "CA_HU.txt"
 dd = orth_parse(filename2)
 ddp = uni_ann(dd)
+F = open('CA_Hu_dict.pkl', 'wb')
+import pickle
+pickle.dump(ddp, F)
+F.close()
+hu2ca = get_hu2ca_dict(ddp)
+add_orthologs(p, hu2ca)
+interalogs = make_interalogs2(p, ddp)
+
+F = open('interalogsCA_HU.pkl', 'wb')
+pickle.dump(interalogs, F)
+F.close()
