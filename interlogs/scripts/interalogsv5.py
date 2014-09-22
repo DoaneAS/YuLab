@@ -219,4 +219,6 @@ if __name__ == '__main__':
     res = get_interalogs(ppi_filename, inpar_filename)
     import pprint
     pprint.pprint(res)
+    #import json
+    #json.dump(res, fp=open('interalogs_hu2ca.txt', 'w'), indent=4)
 
