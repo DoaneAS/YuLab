@@ -200,8 +200,15 @@ def get_orth_matches(intlist, entrez2uni, hu2ca):
     return ddres
 
 
-from bioservices.uniprot import UniProt
-u = UniProt(verbose=False)
+
+def get_hu_ids(intlist):
+    hu_ids = []
+    for i in intlist:
+        a = i[0]
+        b= i[1]
+        hu_ids.append(a)
+        hu_ids.append(b)
+    return hu_ids
 
 def get_uni_mapping(ids, frdb, todb):
     query = ' '.join(ids)
@@ -219,8 +226,35 @@ def get_interalogs(ppi_filename, inpar_filename):
     res = get_orth_matches(intlist, entrez2uni, hu2ca)
     return res
 
+def flatten(l, ltypes=(list, tuple)):
+    ltype = type(l)
+    l = list(l)
+    i = 0
+    while i < len(l):
+        while isinstance(l[i], ltypes):
+            if not l[i]:
+                l.pop(i)
+                i -= 1
+                break
+            else:
+                l[i:i + 1] = l[i]
+        i += 1
+    return ltype(l)
 
+from collections import defaultdict
 
+def int_by_ca(res):
+    ddnew = defaultdict(list)
+    for k, v in res.items():
+        hpp = [(v['Agene'], v['Bgene'])]
+        A= flatten(v['A*'])
+        B = flatten(v['B*'])
+        for a in A:
+            for b in B:
+                if not (a, b) in ddnew:
+                    ddnew[(a, b)] = hpp
+                else: ddnew[(a,b)].append(hpp)
+    return ddnew
 
 
 if __name__ == '__main__':
@@ -229,10 +263,12 @@ if __name__ == '__main__':
     p = get_seq_ppi(ppi_filename)
     gids = get_gids(p)
     intlist = get_intlist(p)
+    ids = get_hu_ids(intlist)
     #entrez2uni = get_entrez2uni(g2uni)
     frdb = "P_ENTREZGENEID"
     todb = "ACC"
-    entrez2uni = get_uni_mapping(gids, frdb, todb)
+    entrez2uni = get_uni_mapping(ids, frdb,todb)
     hu2ca = orth_parse_hu2ca(inpar_filename)
     res = get_orth_matches(intlist, entrez2uni, hu2ca)
+    ca_res = int_by_ca(res)
 
