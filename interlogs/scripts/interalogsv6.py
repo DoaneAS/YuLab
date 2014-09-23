@@ -252,8 +252,8 @@ def int_by_ca(res):
         for a in A:
             for b in B:
                 if not (a, b) in ddnew:
-                    ddnew[(a, b)] = hpp
-                else: ddnew[(a,b)].append(hpp)
+                    ddnew[(a, b)] = {"hu" : hpp}
+                else: ddnew[(a,b)]['hu'].append(hpp)
     return ddnew
 
 
@@ -271,4 +271,3 @@ if __name__ == '__main__':
     hu2ca = orth_parse_hu2ca(inpar_filename)
     res = get_orth_matches(intlist, entrez2uni, hu2ca)
     ca_res = int_by_ca(res)
-
