@@ -1,7 +1,8 @@
 from pandas import Series, DataFrame
 import pandas as pd
 
-filename= "HumanBinary_All.txt"
+#filename= "~/YuLab/interlogs/HumanBinary_All.txt"
+#filename= "HumanBinary_All.txt"
 
 def get_seq_ppi(filename):
     """Return all the items in the file named filename; if testfn
@@ -255,7 +256,7 @@ def add_geneid(ddp, res):
 
 
 
-filename2= "CA_HU.txt"
+#filename2= "CA_HU.txt"
 
 def uni_ann(ddp):
     ids = []
@@ -313,20 +314,25 @@ def make_interalogs2(p, ddp):
         entry['B'] = ddp[y]['hu']
     return inter2
 
-filename= "HumanBinary_All.txt"
-p = get_seq_ppi(filename)
 
-filename2= "CA_HU.txt"
-dd = orth_parse(filename2)
-ddp = uni_ann(dd)
-F = open('CA_Hu_dict.pkl', 'wb')
-import pickle
-pickle.dump(ddp, F)
-F.close()
-hu2ca = get_hu2ca_dict(ddp)
-add_orthologs(p, hu2ca)
-interalogs = make_interalogs2(p, ddp)
+if __name__ == '__main__':
+    filename= "/Users/ashleysdoane/YuLab/interlogs/HumanBinary_All.txt"
+    p = get_seq_ppi(filename)
+    print p
+    filename2= "/Users/ashleysdoane/YuLab/interlogs/CA_HU.txt"
+    dd = orth_parse(filename2)
+    ddp = uni_ann(dd)
+    print ddp
+    F = open('CA_Hu_dict2.pkl', 'wb')
+    import pickle
+    pickle.dump(ddp, F)
+    F.close()
+    hu2ca = get_hu2ca_dict(ddp)
+    add_orthologs(p, hu2ca)
+    interalogs = make_interalogs2(p, ddp)
+    import pprint
+    pprint.pprint(interalogs)
 
-F = open('interalogsCA_HU.pkl', 'wb')
-pickle.dump(interalogs, F)
-F.close()
+    F = open('interalogsCA_HU2.pkl', 'wb')
+    pickle.dump(interalogs, F)
+    F.close()

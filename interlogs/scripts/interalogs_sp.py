@@ -107,24 +107,24 @@ def get_orth_matches_sp(intlist, sp2uni, sp2ca):
             uniprots = sp2uni.get(a)
             if type(uniprots) != list:
                 if uniprots in sp2ca:
-                    una = uniprots
+                    una = sp2ca[uniprots]
                     indA += 1
             if type(uniprots) == list:
                 for u in uniprots:
                     if u in sp2ca:
-                        una = uniprots
+                        una = sp2ca[u]
                         indA += 1
 
         if b in sp2uni:
             uniprots = sp2uni.get(b)
             if type(uniprots) != list:
                 if uniprots in sp2ca:
-                    unb = uniprots
+                    unb = sp2ca[uniprots]
                     indB += 1
             if type(uniprots) == list:
                 for w in uniprots:
                     if w in sp2ca:
-                        unb = uniprots
+                        unb = sp2ca[w]
                         indB += 1
         if indA + indB >= 2:
                 ddres[a,b] = {'A_sp_prot':a, 'B_sp_prot' :b,
@@ -138,8 +138,18 @@ def get_orth_matches_sp(intlist, sp2uni, sp2ca):
                 entry['B*'].append(unb)
     return ddres
 
-
-
+def sp_int_by_ca(res):
+    ddnew = defaultdict(list)
+    for k, v in res.items():
+        hpp = [(v['A_sp_prot'], v['B_sp_prot'])]
+        A= flatten(v['A*'])
+        B = flatten(v['B*'])
+        for a in A:
+            for b in B:
+                if not (a, b) in ddnew:
+                    ddnew[(a, b)] = hpp
+                else: ddnew[(a,b)].append(hpp)
+    return ddnew
 
 def get_interalogs_sp(ppi_filename, inpar_filename):
     ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/spBinary_All.txt"
@@ -164,3 +174,5 @@ p = get_seq_ppi_sp(ppi_filename)
 inpar_sp = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.pombe.txt"
 sp2ca = orth_parse_sp2ca(inpar_sp)
 sp_interalogs = get_interalogs_sp(ppi_filename, inpar_sp)
+ca_sp_int = sp_int_by_ca(sp_interalogs)
+ca_sp = dict(ca_sp_int)

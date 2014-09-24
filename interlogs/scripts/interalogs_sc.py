@@ -90,11 +90,25 @@ def get_sc_ids(intlist):
 from bioservices.uniprot import UniProt
 u = UniProt(verbose=False)
 
-def get_uni_mapping(ids, frdb, todb):
+def get_uni_mapping_old(ids, frdb, todb):
     query = ' '.join(ids)
     queries= list(set(query.split()))
     res = u.mapping(fr=frdb, to= todb, query = queries)
     return res
+
+
+def get_uni_mapping(ids, frdb, todb):
+    query = ' '.join(ids)
+    queries= list(set(query.split()))
+    res = u.mapping(fr=frdb, to= todb, query = queries)
+    newd = defaultdict(list)
+    for k, v in res.items():
+        kk = k.encode('ascii', 'ignore')
+        vv = []
+        for i in v:
+            vv.append(i.encode('ascii', 'ignore'))
+        newd[kk] = vv
+    return newd
 
 def get_orth_matches_sc(intlist, sc2uni, sc2ca):
     ddres = {}
@@ -107,24 +121,24 @@ def get_orth_matches_sc(intlist, sc2uni, sc2ca):
             uniprots = sc2uni.get(a)
             if type(uniprots) != list:
                 if uniprots in sc2ca:
-                    una = uniprots
+                    una = sc2ca[uniprots]
                     indA += 1
             if type(uniprots) == list:
                 for u in uniprots:
                     if u in sc2ca:
-                        una = uniprots
+                        una = sc2ca[u]
                         indA += 1
 
         if b in sc2uni:
             uniprots = sc2uni.get(b)
             if type(uniprots) != list:
                 if uniprots in sc2ca:
-                    unb = uniprots
+                    unb = sc2ca[uniprots]
                     indB += 1
             if type(uniprots) == list:
                 for w in uniprots:
                     if w in sc2ca:
-                        unb = uniprots
+                        unb = sc2ca[w]
                         indB += 1
         if indA + indB >= 2:
                 ddres[a,b] = {'A_sc_prot':a, 'B_sc_prot' :b,
@@ -138,25 +152,51 @@ def get_orth_matches_sc(intlist, sc2uni, sc2ca):
                 entry['B*'].append(unb)
     return ddres
 
+def sc_int_by_ca(res):
+    ddnew = defaultdict(list)
+    for k, v in res.items():
+        hpp = [(v['Auni'], v['Buni'])]
+        A= flatten(v['A*'])
+        B = flatten(v['B*'])
+        for a in A:
+            for b in B:
+                if not (a, b) in ddnew:
+                    ddnew[(a, b)] = hpp
+                else: ddnew[(a,b)].append(hpp)
+    return ddnew
 
 
+# def get_interalogs_sc(ppi_filename, inpar_filename):
+#     ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/ScBinary_All.txt"
+#     p = get_seq_ppi_sc(ppi_filename)
+#     #gids = get_gids(p)
+#     intlist = get_intlist_sc(p)
+#     #g2uni = get_ids2unp(gids)
+#     #entrez2uni = get_entrez2uni(g2uni)
+#     inpar_sc = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.cerevisiae.txt"
+#     sc2ca = orth_parse_sc2ca(inpar_sc)
+#     frdb = "ENSEMBLGENOME_PRO_ID"
+#     todb="ACC"
+#     sc_ids = get_sc_ids(intlist)
+#     sc2uni = get_uni_mapping(sc_ids, frdb, todb)
+#     res = get_orth_matches_sc(intlist, sc2uni, sc2ca)
+#     #res = get_orth_matches_sc(intlist, sc2ca)
+#     return res
 
-def get_interalogs_sc(ppi_filename, inpar_filename):
-    ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/ScBinary_All.txt"
-    p = get_seq_ppi_sc(ppi_filename)
+ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/ScBinary_All.txt"
+p = get_seq_ppi_sc(ppi_filename)
     #gids = get_gids(p)
-    intlist = get_intlist_sc(p)
+intlist = get_intlist_sc(p)
     #g2uni = get_ids2unp(gids)
     #entrez2uni = get_entrez2uni(g2uni)
-    inpar_sc = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.cerevisiae.txt"
-    sc2ca = orth_parse_sc2ca(inpar_sc)
-    frdb = "ENSEMBLGENOME_PRO_ID"
-    todb="ACC"
-    sc_ids = get_sc_ids(intlist)
-    sc2uni = get_uni_mapping(sc_ids, frdb, todb)
-    res = get_orth_matches_sc(intlist, sc2uni, sc2ca)
-    #res = get_orth_matches_sc(intlist, sc2ca)
-    return res
-
-
-sc2ca_interalogs = get_interalogs_sc(ppi_filename, inpar_filename)
+inpar_sc = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.cerevisiae.txt"
+sc2ca = orth_parse_sc2ca(inpar_sc)
+frdb = "ENSEMBLGENOME_PRO_ID"
+todb="ACC"
+sc_ids = get_sc_ids(intlist)
+sc2uni = get_uni_mapping(sc_ids, frdb, todb)
+sc2ca_interalogs = get_orth_matches_sc(intlist, sc2uni, sc2ca)
+ca2sc_int = sc_int_by_ca(sc2ca_interalogs)
+ca_sc = dict(ca2sc_int)
+ind = ca2sc_int.keys()
+ca_sc_series = Series(ca2sc_int, index=ind)

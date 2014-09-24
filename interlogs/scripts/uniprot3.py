@@ -103,7 +103,7 @@ import sys
 import pprint
 
 if __name__ == '__main__':
-    ids = ['P01116', 'P15056']
+    ids = ['YDR143C']
     res = pull_uni(ids)
     pprint.pprint(res)
     import json

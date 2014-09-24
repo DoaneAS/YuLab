@@ -5,6 +5,7 @@ class InParndOrthologs:
 
     #def __init__(self, ref_sp, orth_sp, ref_prot, orth_prot, ortholog, source):
     def __init__(self, ortholog_d):
+        dict.__init__(self)
         #self.ref_sp = ref_sp
         #self.orth_sp =orth_sp
         #self.source = source
@@ -143,19 +144,21 @@ class InParanoidParser(object):
     def orth_parse(self, filename):
         with open(filename) as self.src:
             src = self.src
-            ca = None
+            #ca = None
+            #hu = set()
             ddp = {}
             for line in src:
                 if "%" in line[24:31]:
                     ca = line[0:6].strip()
-                ddp[ca] = {
-                        "ca":ca,
-                        "hu": set(),
-                        "geneid":set()
-            }
-                entry = ddp[ca]
-            if "%" in line[65:67]:
-                entry['hu'].add(line[35:43].strip())
+                    #hu = line[35:43]
+                    ddp[ca] = {
+                            "ca":ca,
+                            "hu": set(),
+                            "geneid":set()
+                }
+                    entry = ddp[ca]
+                if "%" in line[65:67]:
+                    entry['hu'].add(line[35:43].strip())
         ortholog_d= ddp
         return Ortholog_d(ortholog_d)
 

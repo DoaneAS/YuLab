@@ -32,10 +32,6 @@ def get_pairs(src):
 
 
 
-
-
-
-
 def get_ppi(src):
     ppi_dict ={}
     ppi = None
@@ -178,16 +174,22 @@ import pprint
 filename= "CA_HU.txt"
 #filename = "C.test.txt"
 
-def ortho_parse(filename):
+def orth_parse(filename):
     src = open(filename)
-    reslist = []
-    Can_Hu = {}
-    for line in open(filename):
-        if line[24:30] == "100.00":
-            key = line[0:6].strip()
-            huval = line[35:43].strip()
-            Can_Hu[key] = huval
-    return Can_Hu
+    ddp = {}
+    for line in src:
+        if "%" in line[24:31]:
+            ca = line[0:6].strip()
+            ddp[ca] = {
+                    "ca":ca,
+                    "hu": [],
+                    "geneid":set()
+        }
+            entry = ddp[ca]
+        if "%" in line[65:67]:
+            entry['hu'].append(line[35:43].strip())
+    return ddp
+
 
 def ortho_parse_hu(filename):
     src = open(filename)
@@ -213,12 +215,6 @@ def ortho_parse_dict(filename):
             entry = Can_Hu[ca]
     return Can_Hu
 
-
-dd = ortho_parse(filename)
-ddd = ortho_parse_dict(filename)
-ids = dd.values()
-res = pull_uni(ids)
-
 def add_geneid(ddp, res):
     """ddp is dictionary of Ca:Hu
     res is uniprot annotations for Hu gene in ddp"""
@@ -226,5 +222,15 @@ def add_geneid(ddp, res):
         for k in ddp.iterkeys():
             entry = ddp[k]
             if len((entry['hu']).intersection(d['accs'])) != 0:
+                if len(entry['geneid']) == 0:
+                    entry['geneid'] = set()
                 entry['geneid'].update(d['geneid'])
     return ddp
+
+
+dd = ortho_parse(filename)
+ddd = ortho_parse_dict(filename)
+ids = dd.values()
+res = pull_uni(ids)
+
+

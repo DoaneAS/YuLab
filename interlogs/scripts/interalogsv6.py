@@ -1,6 +1,9 @@
 from pandas import Series, DataFrame
 import pandas as pd
 
+from bioservices.uniprot import UniProt
+u = UniProt(verbose=False)
+
 #filename= "~/YuLab/interlogs/HumanBinary_All.txt"
 filename= "HumanBinary_All.txt"
 
@@ -168,24 +171,24 @@ def get_orth_matches(intlist, entrez2uni, hu2ca):
             uniprots = entrez2uni.get(a)
             if type(uniprots) != list:
                 if uniprots in hu2ca:
-                    una = uniprots
+                    una = hu2ca[uniprots]
                     indA += 1
             if type(uniprots) == list:
                 for u in uniprots:
                     if u in hu2ca:
-                        una = uniprots
+                        una = hu2ca[u]
                         indA += 1
 
         if b in entrez2uni:
             uniprots = entrez2uni.get(b)
             if type(uniprots) != list:
                 if uniprots in hu2ca:
-                    unb = uniprots
+                    unb = hu2ca[uniprots]
                     indB += 1
             if type(uniprots) == list:
                 for u in uniprots:
                     if u in hu2ca:
-                        unb = uniprots
+                        unb = hu2ca[u]
                         indB += 1
         if indA + indB >= 2:
                 ddres[a,b] = {'Agene':a, 'Bgene' :b,
@@ -252,8 +255,8 @@ def int_by_ca(res):
         for a in A:
             for b in B:
                 if not (a, b) in ddnew:
-                    ddnew[(a, b)] = {"hu" : hpp}
-                else: ddnew[(a,b)]['hu'].append(hpp)
+                    ddnew[(a, b)] = hpp
+                else: ddnew[(a,b)].append(hpp)
     return ddnew
 
 
