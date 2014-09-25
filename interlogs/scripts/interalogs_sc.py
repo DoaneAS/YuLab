@@ -1,4 +1,10 @@
-filename = "/Users/ashleysdoane/YuLab/interlogs/ScBinary_All.txt"
+from pandas import Series, DataFrame
+import pandas as pd
+
+from bioservices.uniprot import UniProt
+u = UniProt(verbose=False)
+from collections import defaultdict
+
 def get_seq_ppi_sc(filename):
     """Return all the items in the file named filename; if testfn
     then include only those items for which testfn is true"""
@@ -9,13 +15,6 @@ def get_seq_ppi_sc(filename):
         ppid = get_ppi_sc(pp)
         return ppid
 
-#def get_items
-
-# def get_pairs(src):
-#     pairs = [[line.split()[0], line.split()[1]] for line in src if line[0] != '']
-#     for pp in pairs:
-#         k = (pp[0], pp[1])
-#     return k
 def get_Ps(src):
     Ps = [[line.split()[0:5] for line in src]]
     return Ps
@@ -35,9 +34,7 @@ def get_ppi_sc(src):
         'symbol': symbol,
         'CA_ortholog': None,
         }
-        #ppi[tuple([i[0], i[1]])] = val
     return ppi_dict
-
 
 def get_intlist_sc(intdata):
     intlist = []
@@ -67,15 +64,20 @@ def get_gids(ppi):
     ids = list(set(ids))
     return ids
 
-
-    #import mygene
-    #mg = mygene.MyGeneInfo()
-    #out = mg.querymany(ids, scopes='entrezgene', fields='uniprot', species='human')
-#outdf = mg.querymany(ids, scopes='entrezgene', fields='uniprot', species='human')
-
-
-
-
+def flatten(l, ltypes=(list, tuple)):
+    ltype = type(l)
+    l = list(l)
+    i = 0
+    while i < len(l):
+        while isinstance(l[i], ltypes):
+            if not l[i]:
+                l.pop(i)
+                i -= 1
+                break
+            else:
+                l[i:i + 1] = l[i]
+        i += 1
+    return ltype(l)
 
 def get_sc_ids(intlist):
     sc_ids = []
@@ -86,7 +88,6 @@ def get_sc_ids(intlist):
         sc_ids.append(b)
     return sc_ids
 
-
 from bioservices.uniprot import UniProt
 u = UniProt(verbose=False)
 
@@ -95,7 +96,6 @@ def get_uni_mapping_old(ids, frdb, todb):
     queries= list(set(query.split()))
     res = u.mapping(fr=frdb, to= todb, query = queries)
     return res
-
 
 def get_uni_mapping(ids, frdb, todb):
     query = ' '.join(ids)
@@ -108,7 +108,7 @@ def get_uni_mapping(ids, frdb, todb):
         for i in v:
             vv.append(i.encode('ascii', 'ignore'))
         newd[kk] = vv
-    return newd
+    return res
 
 def get_orth_matches_sc(intlist, sc2uni, sc2ca):
     ddres = {}
@@ -155,40 +155,21 @@ def get_orth_matches_sc(intlist, sc2uni, sc2ca):
 def sc_int_by_ca(res):
     ddnew = defaultdict(list)
     for k, v in res.items():
-        hpp = [(v['Auni'], v['Buni'])]
+        pa = v['A_sc_prot']
+        pb = v['B_sc_prot']
+        pp = [pa, pb]
         A= flatten(v['A*'])
         B = flatten(v['B*'])
         for a in A:
             for b in B:
                 if not (a, b) in ddnew:
-                    ddnew[(a, b)] = hpp
-                else: ddnew[(a,b)].append(hpp)
+                    ddnew[(a, b)] = [pp]
+                else: ddnew[(a,b)].append(pp)
     return ddnew
-
-
-# def get_interalogs_sc(ppi_filename, inpar_filename):
-#     ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/ScBinary_All.txt"
-#     p = get_seq_ppi_sc(ppi_filename)
-#     #gids = get_gids(p)
-#     intlist = get_intlist_sc(p)
-#     #g2uni = get_ids2unp(gids)
-#     #entrez2uni = get_entrez2uni(g2uni)
-#     inpar_sc = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.cerevisiae.txt"
-#     sc2ca = orth_parse_sc2ca(inpar_sc)
-#     frdb = "ENSEMBLGENOME_PRO_ID"
-#     todb="ACC"
-#     sc_ids = get_sc_ids(intlist)
-#     sc2uni = get_uni_mapping(sc_ids, frdb, todb)
-#     res = get_orth_matches_sc(intlist, sc2uni, sc2ca)
-#     #res = get_orth_matches_sc(intlist, sc2ca)
-#     return res
 
 ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/ScBinary_All.txt"
 p = get_seq_ppi_sc(ppi_filename)
-    #gids = get_gids(p)
 intlist = get_intlist_sc(p)
-    #g2uni = get_ids2unp(gids)
-    #entrez2uni = get_entrez2uni(g2uni)
 inpar_sc = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.cerevisiae.txt"
 sc2ca = orth_parse_sc2ca(inpar_sc)
 frdb = "ENSEMBLGENOME_PRO_ID"
@@ -198,5 +179,11 @@ sc2uni = get_uni_mapping(sc_ids, frdb, todb)
 sc2ca_interalogs = get_orth_matches_sc(intlist, sc2uni, sc2ca)
 ca2sc_int = sc_int_by_ca(sc2ca_interalogs)
 ca_sc = dict(ca2sc_int)
-ind = ca2sc_int.keys()
-ca_sc_series = Series(ca2sc_int, index=ind)
+
+output = open('results/ca_sc.txt', 'w')
+for k in ca_sc.keys():
+    key = '%s %s' % k
+    output.write(key)
+    for v in ca_sc[k]:
+        output.write('\t'+'-'.join(v))
+    output.write('\n')

@@ -1,3 +1,10 @@
+from pandas import Series, DataFrame
+import pandas as pd
+
+from bioservices.uniprot import UniProt
+u = UniProt(verbose=False)
+from collections import defaultdict
+
 filename = "/Users/ashleysdoane/YuLab/interlogs/SpBinary_All.txt"
 def get_seq_ppi_sp(filename):
     """Return all the items in the file named filename; if testfn
@@ -141,14 +148,16 @@ def get_orth_matches_sp(intlist, sp2uni, sp2ca):
 def sp_int_by_ca(res):
     ddnew = defaultdict(list)
     for k, v in res.items():
-        hpp = [(v['A_sp_prot'], v['B_sp_prot'])]
+        pa = v['A_sp_prot']
+        pb = v['B_sp_prot']
+        pp = [pa, pb]
         A= flatten(v['A*'])
         B = flatten(v['B*'])
         for a in A:
             for b in B:
                 if not (a, b) in ddnew:
-                    ddnew[(a, b)] = hpp
-                else: ddnew[(a,b)].append(hpp)
+                    ddnew[(a, b)] = [pp]
+                else: ddnew[(a,b)].append(pp)
     return ddnew
 
 def get_interalogs_sp(ppi_filename, inpar_filename):
@@ -176,3 +185,11 @@ sp2ca = orth_parse_sp2ca(inpar_sp)
 sp_interalogs = get_interalogs_sp(ppi_filename, inpar_sp)
 ca_sp_int = sp_int_by_ca(sp_interalogs)
 ca_sp = dict(ca_sp_int)
+
+output = open('results/ca_sp.txt', 'w')
+for k in ca_sp.keys():
+    key = '%s %s' % k
+    output.write(key)
+    for v in ca_sp[k]:
+        output.write('\t'+'-'.join(v))
+    output.write('\n')

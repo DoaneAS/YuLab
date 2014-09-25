@@ -3,8 +3,7 @@ import pandas as pd
 
 from bioservices.uniprot import UniProt
 u = UniProt(verbose=False)
-
-#filename= "~/YuLab/interlogs/HumanBinary_All.txt"
+from collections import defaultdict
 filename= "HumanBinary_All.txt"
 
 def get_seq_ppi(filename):
@@ -17,13 +16,6 @@ def get_seq_ppi(filename):
         ppid = get_ppi(pp)
         return ppid
 
-#def get_items
-
-# def get_pairs(src):
-#     pairs = [[line.split()[0], line.split()[1]] for line in src if line[0] != '']
-#     for pp in pairs:
-#         k = (pp[0], pp[1])
-#     return k
 def get_Ps(src):
     Ps = [[line.split()[0:5] for line in src]]
     return Ps
@@ -43,11 +35,7 @@ def get_ppi(src):
         'symbol': symbol,
         'CA_ortholog': None,
         }
-        #ppi[tuple([i[0], i[1]])] = val
     return ppi_dict
-
-#p = get_seq_ppi(filename)
-
 
 def get_gids(ppi):
     geneids = ppi.keys()
@@ -129,9 +117,9 @@ def get_orth_matches(intlist, entrez2uni, hu2ca):
                     unb = hu2ca[uniprots]
                     indB += 1
             if type(uniprots) == list:
-                for u in uniprots:
-                    if u in hu2ca:
-                        unb = hu2ca[u]
+                for w in uniprots:
+                    if w in hu2ca:
+                        unb = hu2ca[w]
                         indB += 1
         if indA + indB >= 2:
                 ddres[a,b] = {'Agene':a, 'Bgene' :b,
@@ -178,21 +166,20 @@ def flatten(l, ltypes=(list, tuple)):
         i += 1
     return ltype(l)
 
-from collections import defaultdict
-
 def int_by_ca(res):
     ddnew = defaultdict(list)
     for k, v in res.items():
-        hpp = [(v['Agene'], v['Bgene'])]
+        hpa = v['Agene']
+        hpb = v['Bgene']
         A= flatten(v['A*'])
         B = flatten(v['B*'])
+        hpp = [hpa, hpb]
         for a in A:
             for b in B:
                 if not (a, b) in ddnew:
-                    ddnew[(a, b)] = hpp
+                    ddnew[(a, b)] = [hpp]
                 else: ddnew[(a,b)].append(hpp)
     return ddnew
-
 
 
 ppi_filename= "/Users/ashleysdoane/YuLab/interlogs/HumanBinary_All.txt"
@@ -207,3 +194,12 @@ hu2ca = orth_parse_hu2ca("C.albicans-H.sapiens.txt")
 res = get_orth_matches(intlist, entrez2uni, hu2ca)
 ca_res = int_by_ca(res)
 ca_hu = dict(ca_res)
+
+output = open('results/ca_hu.txt', 'w')
+for k in ca_hu.keys():
+    key = '%s %s' % k
+    output.write(key)
+    for v in ca_hu[k]:
+        output.write('\t'+'-'.join(v))
+    output.write('\n')
+
