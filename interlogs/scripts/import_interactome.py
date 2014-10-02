@@ -17,73 +17,6 @@ collab_ids = []
 for i in i_ids:
     collab_ids.append(i.upper())
 
-
-from bioservices.uniprot import UniProt
-u = UniProt(verbose=False)
-
-todb =
-frdb =
-query = ' '.join(ids)
-queries= list(set(query.split()))
-res = u.mapping(fr=frdb, to= todb, query = queries)
-newd = defaultdict(list)
-for k, v in res.items():
-    kk = k.encode('ascii', 'ignore')
-    vv = []
-    for i in v:
-        vv.append(i.encode('ascii', 'ignore'))
-    newd[kk] = vv
-
-
-cids = []
-for k in ca_hu.keys():
-    a = k[0]
-    b = k[1]
-    cids.append(a)
-    cids.append(b)
-frdb = "ACC"
-todb = "CGD"
-query = ' '.join(cids)
-queries= list(set(query.split()))
-res = u.mapping(fr=frdb, to= todb, query = queries)
-
-
-ids2 = []
-for i in ids:
-    if i.startswith("SC"):
-        ids2.append(i[2:])
-    else:
-        ids2.append(i)
-
-
-filename = "/Users/ashleysdoane/YuLab/interlogs/imports/InteractomePilot.txt"
-dd=[]
-with open(filename) as src:
-    for line in src:
-        #dd = [line.strip().split("\t")[1]],
-        sym = line.split("\t")[2]
-        dd.append(sym) #.upper())
-
-iids = dd[1:]
-i_ids = []
-for i in iids:
-    if i.startswith("Sc"):
-        i_ids.append(i[2:])
-    else:
-        i_ids.append(i)
-ids = []
-for i in i_ids:
-    ids.append(i.upper())
-
-ids
-
-import mygene
-
-mg = mygene.MyGeneInfo()
-mg.querymany()   q, scopes='uniprot', )
-
-
-#interalouniprot ideas to use for query
 Cids = []
 for k in ddd_all.keys():
     Cids.append(k[0])
@@ -193,7 +126,7 @@ import pprint
 
 ids = cids
 res = pull_uni(ids)
-#pprint.pprint(res)
+
 uni2sym = {}
 for k in res.keys():
     for x in res[k]['accs']:
@@ -220,7 +153,7 @@ for c in collab_ids:
 
 cd = {z: w for w, z in matches.items()}
 
-##this (working)
+##add albicans symbols to ddd_all
 for k, v in ddd_all.items():
     a = k[0]
     b = k[1]
@@ -234,7 +167,6 @@ for k, v in ddd_all.items():
         indB += 1
     if indA != 0:
         entry = ddd_all[k]
-        print k
         if not 'c_A' in entry:
             entry['c_A'] = []
         entry['c_A'].append(c_a)
@@ -243,23 +175,6 @@ for k, v in ddd_all.items():
         if not 'c_B' in entry:
             entry['c_B'] = []
         entry['c_B'].append(c_b)
-
-    #or this
-for k in ddd_all.keys():
-    entry = ddd_all[k]
-    if not entry == None:
-        if k[0] in cd:
-            cA = cd.get(k[0])
-            if not 'cA' in ddd_all[k]:
-                entry['cA'] = []
-            entry['cA'].append(cA)
-        if k[1] in cd:
-            cB = cd.get(k[1])
-            if not 'cB' in ddd_all[k]:
-                entry['cB'] = []
-            entry['cB'].append(cB)
-
-
 ##write result to file
 
 
