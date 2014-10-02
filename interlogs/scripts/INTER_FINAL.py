@@ -63,7 +63,6 @@ def get_ddd(p, g2uni):
     for k, v in ddd.items():
         dddset[k] = v['A'], v['B']
     return dddset
-    #ddd[(i,j)] = (A, B)
 
 
 def get_intlist(intdata):
@@ -560,10 +559,7 @@ def sp_int_by_ca(res):
 def get_interalogs_sp(ppi_filename, inpar_filename):
     ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/spBinary_All.txt"
     p = get_seq_ppi_sp(ppi_filename)
-    #gids = get_gids(p)
     intlist = get_intlist_sp(p)
-    #g2uni = get_ids2unp(gids)
-    #entrez2uni = get_entrez2uni(g2uni)
     inpar_sp = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.pombe.txt"
     sp2ca = orth_parse_sp2ca(inpar_sp)
     frdb = "POMBASE_ID"
