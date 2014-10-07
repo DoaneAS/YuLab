@@ -6,43 +6,40 @@ u = UniProt(verbose=False)
 from collections import defaultdict
 
 filename = "/Users/ashleysdoane/YuLab/interlogs/SpBinary_All.txt"
+
+
 def get_seq_ppi_sp(filename):
     """Return all the items in the file named filename; if testfn
     then include only those items for which testfn is true"""
     with open(filename) as file:
-        #return get_pairs(file)
-        p= get_Ps(file)
+        # return get_pairs(file)
+        p = get_Ps(file)
         pp = p[0]
         ppid = get_ppi_sp(pp)
         return ppid
 
-#def get_items
 
-# def get_pairs(src):
-#     pairs = [[line.split()[0], line.split()[1]] for line in src if line[0] != '']
-#     for pp in pairs:
-#         k = (pp[0], pp[1])
-#     return k
 def get_Ps(src):
     Ps = [[line.split()[0:5] for line in src]]
     return Ps
+
 
 def get_pairs(src):
     pairs = ([line.split()[0], line.split()[1]] for line in src if line[0] != '')
     return pairs
 
+
 def get_ppi_sp(src):
-    ppi_dict ={}
+    ppi_dict = {}
     ppi = None
     for i in src:
         symbol = (i[2], i[3])
         ppi = tuple([i[0], i[1]])
         ppi_dict[ppi] = {
-        "uniprot_sp": ppi,
-        'symbol': symbol,
-        'CA_ortholog': None,
+            "uniprot_sp": ppi,
+            'symbol': symbol,
+            'CA_ortholog': None,
         }
-        #ppi[tuple([i[0], i[1]])] = val
     return ppi_dict
 
 
@@ -51,6 +48,7 @@ def get_intlist_sp(intdata):
     for k in intdata.keys():
         intlist.append(k)
     return intlist
+
 
 def orth_parse_sp2ca(filename):
     ca_list = {}
@@ -65,6 +63,7 @@ def orth_parse_sp2ca(filename):
             ddp[sp] = ca
     return ddp
 
+
 def get_gids(ppi):
     geneids = ppi.keys()
     ids = []
@@ -75,20 +74,11 @@ def get_gids(ppi):
     return ids
 
 
-    #import mygene
-    #mg = mygene.MyGeneInfo()
-    #out = mg.querymany(ids, spopes='entrezgene', fields='uniprot', species='human')
-#outdf = mg.querymany(ids, spopes='entrezgene', fields='uniprot', species='human')
-
-
-
-
-
 def get_sp_ids(intlist):
     sp_ids = []
     for i in intlist:
         a = i[0]
-        b= i[1]
+        b = i[1]
         sp_ids.append(a)
         sp_ids.append(b)
     return sp_ids
@@ -97,11 +87,13 @@ def get_sp_ids(intlist):
 from bioservices.uniprot import UniProt
 u = UniProt(verbose=False)
 
+
 def get_uni_mapping(ids, frdb, todb):
     query = ' '.join(ids)
-    queries= list(set(query.split()))
-    res = u.mapping(fr=frdb, to= todb, query = queries)
+    queries = list(set(query.split()))
+    res = u.mapping(fr=frdb, to=todb, query=queries)
     return res
+
 
 def get_orth_matches_sp(intlist, sp2uni, sp2ca):
     ddres = {}
@@ -109,7 +101,7 @@ def get_orth_matches_sp(intlist, sp2uni, sp2ca):
         indA = 0
         indB = 0
         a = i[0]
-        b= i[1]
+        b = i[1]
         if a in sp2uni:
             uniprots = sp2uni.get(a)
             if type(uniprots) != list:
@@ -134,16 +126,17 @@ def get_orth_matches_sp(intlist, sp2uni, sp2ca):
                         unb = sp2ca[w]
                         indB += 1
         if indA + indB >= 2:
-                ddres[a,b] = {'A_sp_prot':a, 'B_sp_prot' :b,
-                              'Auni' : sp2uni[a],
-                              'Buni': sp2uni[b],
-                              'A*':[],
-                              'B*':[],
-                            }
-                entry = ddres[a,b]
-                entry['A*'].append(una)
-                entry['B*'].append(unb)
+            ddres[a, b] = {'A_sp_prot': a, 'B_sp_prot': b,
+                           'Auni': sp2uni[a],
+                           'Buni': sp2uni[b],
+                           'A*': [],
+                           'B*': [],
+                           }
+            entry = ddres[a, b]
+            entry['A*'].append(una)
+            entry['B*'].append(unb)
     return ddres
+
 
 def sp_int_by_ca(res):
     ddnew = defaultdict(list)
@@ -151,34 +144,32 @@ def sp_int_by_ca(res):
         pa = v['A_sp_prot']
         pb = v['B_sp_prot']
         pp = [pa, pb]
-        A= flatten(v['A*'])
+        A = flatten(v['A*'])
         B = flatten(v['B*'])
         for a in A:
             for b in B:
                 if not (a, b) in ddnew:
                     ddnew[(a, b)] = [pp]
-                else: ddnew[(a,b)].append(pp)
+                else:
+                    ddnew[(a, b)].append(pp)
     return ddnew
 
+
 def get_interalogs_sp(ppi_filename, inpar_filename):
-    ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/spBinary_All.txt"
+    ppi_filename = "/Users/ashleysdoane/YuLab/interlogs/spBinary_All.txt"
     p = get_seq_ppi_sp(ppi_filename)
-    #gids = get_gids(p)
     intlist = get_intlist_sp(p)
-    #g2uni = get_ids2unp(gids)
-    #entrez2uni = get_entrez2uni(g2uni)
     inpar_sp = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.pombe.txt"
     sp2ca = orth_parse_sp2ca(inpar_sp)
     frdb = "POMBASE_ID"
-    todb="ACC"
+    todb = "ACC"
     sp_ids = get_sp_ids(intlist)
     sp2uni = get_uni_mapping(sp_ids, frdb, todb)
     res = get_orth_matches_sp(intlist, sp2uni, sp2ca)
-    #res = get_orth_matches_sp(intlist, sp2ca)
     return res
 
 
-ppi_filename  = "/Users/ashleysdoane/YuLab/interlogs/spBinary_All.txt"
+ppi_filename = "/Users/ashleysdoane/YuLab/interlogs/spBinary_All.txt"
 p = get_seq_ppi_sp(ppi_filename)
 inpar_sp = "//Users/ashleysdoane/YuLab/interlogs/C.albicans-S.pombe.txt"
 sp2ca = orth_parse_sp2ca(inpar_sp)
@@ -191,5 +182,5 @@ for k in ca_sp.keys():
     key = '%s %s' % k
     output.write(key)
     for v in ca_sp[k]:
-        output.write('\t'+'-'.join(v))
+        output.write('\t' + '-'.join(v))
     output.write('\n')
