@@ -579,13 +579,14 @@ sp_interalogs = get_interalogs_sp(ppi_filename, inpar_sp)
 ca_sp_int = sp_int_by_ca(sp_interalogs)
 ca_sp = dict(ca_sp_int)
 
-output = open('results/ca_sp.txt', 'w')
-for k in ca_sp.keys():
-    key = '%s %s' % k
-    output.write(key)
-    for v in ca_sp[k]:
-        output.write('\t'+'-'.join(v))
-    output.write('\n')
+
+# output = open('results/ca_sp.txt', 'w')
+# for k in ca_sp.keys():
+#     key = '%s %s' % k
+#     output.write(key)
+#     for v in ca_sp[k]:
+#         output.write('\t'+'-'.join(v))
+#     output.write('\n')
 
 ddd_all = {}
 for k, v in ca_hu.items():
@@ -653,3 +654,6 @@ for k in ddd_all.keys():
                 output.write('-'.join(flatten(v)))
     output.write('\n')
 output.close()
+
+
+dd_hc = {k: v for k, v in ddd_all.iteritems() if len(v) >1}

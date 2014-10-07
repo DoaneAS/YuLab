@@ -61,16 +61,12 @@ def parse_uniprot(uni_txt):
                 'id': uniprot_id,
                 'is_reviewed': is_reviewed,
                 'length': length,
-                'sequence': '',
                 'accs': [],
                 'gene': [],
                 'refseq': []
             }
             entry = metadata_by_acc[uniprot_id]
 
-        if tag == "SQ":
-            if words[0] != "SEQUENCE":
-                entry['sequence'] += ''.join(words)
 
         if tag == "AC":
             accs = [w.replace(";", "") for w in words]
@@ -153,8 +149,42 @@ for c in collab_ids:
 
 cd = {z: w for w, z in matches.items()}
 
-##add albicans symbols to ddd_all
-for k, v in ddd_all.items():
+#all dict
+
+ddd_all = {}
+for k, v in ca_hu.items():
+    if not k in ddd_all:
+        ddd_all[k] = {"hu":v}
+    else:
+        entry = ddd_all[k]
+        entry['hu'].append(v)
+        #dd_all[k].append((v))
+for i, j in ca_sc.items():
+    if not i in ddd_all:
+        ddd_all[i] = {'sc':j}
+    else:
+        entry = ddd_all[i]
+        if not 'sc' in entry:
+            entry['sc'] = []
+        entry['sc'].append(j)
+for m, n in ca_sp.items():
+    if not m in ddd_all:
+        ddd_all[m] = {'sp':n}
+    else:
+        entry = ddd_all[m]
+        if not 'sp' in entry:
+            entry['sp'] = []
+        entry['sp'].append(n)
+
+#hiconf dict
+dd_hc = {}
+dd_hc = {k: v for k, v in ddd_all.iteritems() if len(v) >1}
+
+#allI Int with candida genes
+
+ddd_allAlb = {k: v for k, v in ddd_all.iteritems()}
+
+for k, v in ddd_allAlb.items():
     a = k[0]
     b = k[1]
     indA = 0
@@ -166,86 +196,182 @@ for k, v in ddd_all.items():
         c_b = cd.get(b)
         indB += 1
     if indA != 0:
-        entry = ddd_all[k]
+        entry = ddd_allAlb[k]
         if not 'c_A' in entry:
             entry['c_A'] = []
         entry['c_A'].append(c_a)
     if indB == 1:
-        entry = ddd_all[k]
+        entry = ddd_allAlb[k]
         if not 'c_B' in entry:
             entry['c_B'] = []
         entry['c_B'].append(c_b)
-##write result to file
 
 
-output = open('results/hic.txt', 'w')
-output.write('albicans_interalog'+'\t'+'albicans_A'+'\t' +'albicans_B' +'\t'+'hu_interaction'+'\t'+'cerv_interaction'+'\t'+'pombe_interaction'+'\n')
-for k in dd_hc.keys():
+##add albicans symbols to dd_hc
+# for k, v in dd_hc.items():
+#     a = k[0]
+#     b = k[1]
+#     indA = 0
+#     indB = 0
+#     if a in cd:
+#         c_a = cd.get(a)
+#         indA += 1
+#     if b in cd:
+#         c_b = cd.get(b)
+#         indB += 1
+#     if indA != 0:
+#         entry = dd_hc[k]
+#         if  'c_A' not in entry:
+#             entry['c_A'] = []
+#         entry['c_A'].append(c_a)
+#     if indB != 0:
+#         entry = dd_hc[k]
+#         if  'c_B' not in entry:
+#             entry['c_B'] = []
+#         entry['c_B'].append(c_b)
+
+
+
+
+output = open('results/intAll.txt', 'w')
+output.write('alb_interalog'+'\t'+'alb_A'+'\t' +'alb_B'+'\t'+'hu_int'+'\t'+'cerv_int'+'\t'+'pombe_int'+'\n')
+for k in ddd_allAlb.keys():
     key = '%s-%s' % k
     output.write(key)
 
-    if 'cA' in dd_hc[k]:
+    if 'c_A' in ddd_allAlb[k]:
         output.write("\t")
         count = 0
-        for v in dd_hc[k]['cA']:
+        for v in ddd_allAlb[k]['c_A']:
             count += 1
             if count >1:
-                output.write("; "+"-".join(flatten(v)))
+                output.write("; "+"-".join(v))
             else:
-                output.write('-'.join(flatten(v)))
-     else:
-        output.write('\t')
-
-    if 'cB' in dd_hc[k]:
-        output.write("\t")
-        count = 0
-        for v in dd_hc[k]['cB']:
-            count += 1
-            if count >1:
-                output.write("; "+"-".join(flatten(v)))
-            else:
-                output.write('-'.join(flatten(v)))
-     else:
-        output.write('\t')
-
-    if 'hu' in dd_hc[k]:
-        output.write("\t")
-        count = 0
-        for v in dd_hc[k]['hu']:
-            count += 1
-            if count >1:
-                output.write("; "+"-".join(flatten(v)))
-            else:
-                output.write('-'.join(flatten(v)))
+                output.write(v)
     else:
         output.write('\t')
 
-    if 'sc' in dd_hc[k]:
+    if 'c_B' in ddd_allAlb[k]:
         output.write("\t")
         count = 0
-        for v in dd_hc[k]['sc']:
+        for v in ddd_allAlb[k]['c_B']:
             count += 1
             if count >1:
-                output.write("; "+"-".join(flatten(v)))
+                output.write("; "+"-".join(v))
+            else:
+                output.write(v)
+    else:
+        output.write('\t')
+    if 'hu' in ddd_allAlb[k]:
+        output.write('\t')
+        count = 0
+        for v in ddd_allAlb[k]['hu']:
+            count += 1
+            if count > 1:
+                output.write("; " + "-".join(flatten(v)))
             else:
                 output.write('-'.join(flatten(v)))
     else:
-        output.write('\t')
+        output.write('\t' + 'none')
 
-    if 'sp' in dd_hc[k]:
-        output.write("\t")
+    if 'sc' in ddd_allAlb[k]:
+        output.write('\t')
         count = 0
-        for v in dd_hc[k]['sp']:
+        for v in ddd_allAlb[k]['sc']:
             count += 1
-            if count >1:
-                output.write("; "+"-".join(flatten(v)))
+            if count > 1:
+                output.write("; " + "-".join(flatten(v)))
             else:
                 output.write('-'.join(flatten(v)))
-     else:
+
+    else:
+        output.write('\t' + 'none')
+
+    if 'sp' in ddd_allAlb[k]:
         output.write('\t')
-
-
+        count = 0
+        for v in ddd_allAlb[k]['sp']:
+            count += 1
+            if count > 1:
+                output.write("; " + "-".join(flatten(v)))
+            else:
+                output.write('-'.join(flatten(v)))
+    else:
+        output.write('\t' + 'none')
 
     output.write('\n')
 output.close()
 
+
+
+######
+#hi conf with candA and candB##
+# dd_hcAlb = {}
+
+dd_hcAlb = {k: v for k, v in dd_hc.iteritems() if 'c_A' in v and 'c_B' in v}
+
+output = open('results/candidaAandB_HiConf.txt', 'w')
+output.write('alb_interolog' + '\t' + 'alb_A' + '\t' + 'alb_B' +
+             '\t' + 'hu_int' + '\t' + 'cerv_int' + '\t' + 'pombe_int' + '\n')
+for k in dd_hcAlb.keys():
+    key = '%s-%s' % k
+    output.write(key)
+
+    if 'c_A' in dd_hcAlb[k]:
+        output.write("\t")
+        for v in dd_hcAlb[k]['c_A']:
+            output.write(v)
+    else:
+        output.write('\t' + 'none')
+
+    if 'c_B' in dd_hcAlb[k]:
+        output.write("\t")
+        count = 0
+        for v in dd_hcAlb[k]['c_B']:
+            count += 1
+            if count > 1:
+                output.write("; " + "-".join(v))
+            else:
+                output.write(v)
+    else:
+        output.write('\t' + 'none')
+
+    if 'hu' in dd_hcAlb[k]:
+        output.write('\t')
+        count = 0
+        for v in dd_hcAlb[k]['hu']:
+            count += 1
+            if count > 1:
+                output.write("; " + "-".join(flatten(v)))
+            else:
+                output.write('-'.join(flatten(v)))
+    else:
+        output.write('\t' + 'none')
+
+    if 'sc' in dd_hcAlb[k]:
+        output.write('\t')
+        count = 0
+        for v in dd_hcAlb[k]['sc']:
+            count += 1
+            if count > 1:
+                output.write("; " + "-".join(flatten(v)))
+            else:
+                output.write('-'.join(flatten(v)))
+
+    else:
+        output.write('\t' + 'none')
+
+    if 'sp' in dd_hcAlb[k]:
+        output.write('\t')
+        count = 0
+        for v in dd_hcAlb[k]['sp']:
+            count += 1
+            if count > 1:
+                output.write("; " + "-".join(flatten(v)))
+            else:
+                output.write('-'.join(flatten(v)))
+    else:
+        output.write('\t' + 'none')
+
+    output.write('\n')
+output.close()
