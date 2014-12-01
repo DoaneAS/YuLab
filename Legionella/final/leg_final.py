@@ -267,7 +267,7 @@ global_arg_batch = {
 ids_test = ids_all[0:9]
 
 primers_list = []
-for i in ids_test:
+for i in ids_all:
     target = str(seq_dict.get(i))
     seq_arg_batch = {
         'SEQUENCE_ID': 'test_leg',
@@ -314,3 +314,9 @@ for i in ids_test:
 
 
 primers_list
+
+output = open('results/primers.txt', 'w')
+output.write('gene_id' + '\t' + 'forw_primer' + '\t' + 'rev_primer' + '\n')
+for p in primers_list:
+    output.write(p[0] + '\t' + p[1] + '\t' + p[2] + '\n')
+output.close()
