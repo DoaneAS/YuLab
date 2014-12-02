@@ -169,6 +169,7 @@ test_seq= str(seq_dict.get(ids_all[1]))
 #can iterate through with a list of ids
 
 ftail53 = Seq("GGGGACAACTTTGTACAAAAAAGTTGGCACC", IUPAC.unambiguous_dna)
+ftail53_s = Seq("GGGGACAACTTTGTACAAAAAAGTTGGCACCATG", IUPAC.unambiguous_dna)
 rtail53 = Seq("GGGGACAACTTTGTACAAGAAAGTTGGCAA", IUPAC.unambiguous_dna)
 
 seq_arg = {
@@ -215,11 +216,11 @@ import pprint
 # print res['PRIMER_LEFT_0_SEQUENCE']
 
 
-fp = ftail53 + Seq(res.get('PRIMER_LEFT_0_SEQUENCE'), IUPAC.unambiguous_dna)
+fp = ftail53_s + Seq(res.get('PRIMER_LEFT_0_SEQUENCE'), IUPAC.unambiguous_dna)
 rp = rtail53 + Seq(res.get('PRIMER_RIGHT_0_SEQUENCE'), IUPAC.unambiguous_dna)
 print fp, rp
 
-primer3.calcTm(str(fp)), primer3.calcTm(str(rp))
+print primer3.calcTm(str(fp)), primer3.calcTm(str(rp))
 
 # output = open('results/primers.txt', 'w')
 # for k, v in ...
@@ -267,6 +268,7 @@ global_arg_batch = {
 ids_test = ids_all[0:9]
 
 primers_list = []
+primers_dict = {}
 for i in ids_all:
     target = str(seq_dict.get(i))
     seq_arg_batch = {
@@ -305,11 +307,27 @@ for i in ids_all:
         # 'PRIMER_PRODUCT_SIZE_RANGE': [[75, 100], [100, 125], [125, 150], [150, 175], [175, 200], [200, 225]],
     }
     res = primer3.designPrimers(seq_arg_batch, global_arg_batch)
-    fp = ftail53 + Seq(res.get('PRIMER_LEFT_0_SEQUENCE'), IUPAC.unambiguous_dna)
+    fp = ftail53_s + Seq(res.get('PRIMER_LEFT_0_SEQUENCE'), IUPAC.unambiguous_dna)
     rp = rtail53 + Seq(res.get('PRIMER_RIGHT_0_SEQUENCE'), IUPAC.unambiguous_dna)
     prms = [i, str(fp), str(rp)]
     primers_list.append(prms)
+    # forw_tm = res.get('PRIMER_LEFT_0_TM')
+    forw_tm = primer3.calcTm(str(fp))
+    # rev_tm = res.get('PRIMER_RIGHT_0_TM')
+    rev_tm = primer3.calcTm(str(rp))
+    prod_sz = res.get('PRIMER_PAIR_0_PRODUCT_SIZE')
+    prim_dimer = [res.get('PRIMER_PAIR_0_COMPL_ANY_TH'), res.get('PRIMER_PAIR_0_COMPL_END_TH')]
+    delta_tm = abs(forw_tm - rev_tm)
 
+
+    primers_dict[i] = {'id': i,
+            'fp': str(fp),
+            'rp': str(rp),
+            'f_tm':forw_tm,
+            'r_tm': rev_tm,
+            'delta_tm': delta_tm,
+            'p_dimer': prim_dimer
+            }
 
 
 
@@ -320,3 +338,18 @@ output.write('gene_id' + '\t' + 'forw_primer' + '\t' + 'rev_primer' + '\n')
 for p in primers_list:
     output.write(p[0] + '\t' + p[1] + '\t' + p[2] + '\n')
 output.close()
+
+
+
+output = open('results/primers_detail.txt', 'w')
+output.write('gene_id' + '\t' + 'forw_primer' + '\t' + 'rev_primer' + '\t' + 'forward_tm'  + '\t'  + 'rev_tm' + '\t' + 'delta_tm' + '\t' + 'primer_dimer[Any, End]' + '\n')
+for v in primers_dict.values():
+    output.write('{map[id]} \t {map[fp]} \t {map[rp]} \t {map[f_tm]} \t {map[r_tm]} \t {map[delta_tm]} \t {map[p_dimer]} \n'.format(map =
+                                                                                                    {'id': v['id'] , 'fp': v['fp'],'rp' : v['rp'],'f_tm': v['f_tm'],
+                                                                                                    'r_tm': v['r_tm'],'delta_tm': v['delta_tm'], 'p_dimer': v['p_dimer']}))
+    #output.write(v['fp'] + '\t' + v['rp'] + '\t'  + v['f_tm'] +  '\t' + v['r_tm'] +'\t' + v['p_dimer'] +  '\n')
+output.close()
+
+pprint.pprint(res)
+
+
