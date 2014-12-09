@@ -218,6 +218,8 @@ import pprint
 
 fp = ftail53_s + Seq(res.get('PRIMER_LEFT_0_SEQUENCE'), IUPAC.unambiguous_dna)
 rp = rtail53 + Seq(res.get('PRIMER_RIGHT_0_SEQUENCE'), IUPAC.unambiguous_dna)
+
+print ftail53_s, rtail53
 print fp, rp
 
 print primer3.calcTm(str(fp)), primer3.calcTm(str(rp))
