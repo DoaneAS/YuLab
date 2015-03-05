@@ -325,13 +325,25 @@ for i in ids_all:
     primers_dict[i] = {'id': i,
             'fp': str(fp),
             'rp': str(rp),
+            'prod_len' : prod_sz,
             'f_tm':forw_tm,
             'r_tm': rev_tm,
             'delta_tm': delta_tm,
             'p_dimer': prim_dimer
             }
 
+ho = {}
+for p in leg_uniq:
+    if not p[1] in ids_orig:
+        ho[p[1]] = p[0]
+for k, v in primers_dict.items():
+    if k in ho.keys():
+        primers_dict[k]['hom_of'] = ho[k]
+    else:
+        primers_dict[k]['hom_of'] = 'original'
 
+from collections import OrderedDict
+pd_sorted = OrderedDict(sorted(primers_dict.items(), key=lambda x: x[1]['prod_len']))
 
 primers_list
 
@@ -344,14 +356,19 @@ output.close()
 
 
 output = open('results/primers_detail.txt', 'w')
-output.write('gene_id' + '\t' + 'forw_primer' + '\t' + 'rev_primer' + '\t' + 'forward_tm'  + '\t'  + 'rev_tm' + '\t' + 'delta_tm' + '\t' + 'primer_dimer[Any, End]' + '\n')
-for v in primers_dict.values():
-    output.write('{map[id]} \t {map[fp]} \t {map[rp]} \t {map[f_tm]} \t {map[r_tm]} \t {map[delta_tm]} \t {map[p_dimer]} \n'.format(map =
-                                                                                                    {'id': v['id'] , 'fp': v['fp'],'rp' : v['rp'],'f_tm': v['f_tm'],
-                                                                                                    'r_tm': v['r_tm'],'delta_tm': v['delta_tm'], 'p_dimer': v['p_dimer']}))
+output.write('gene_id' + '\t' + 'product_len' + '\t' + 'forw_primer' + '\t' + 'rev_primer' + '\t' + 'forward_tm'  + '\t'  + 'rev_tm' + '\t' + 'delta_tm' + '\t' + 'primer_dimer[Any, End]' + '\t' + 'hom_of' + '\n')
+for v in pd_sorted.values():
+    output.write('{map[id]} \t  {map[sz]} \t {map[fp]} \t {map[rp]} \t {map[f_tm]} \t {map[r_tm]} \t {map[delta_tm]} \t {map[p_dimer]} \t {map[hom_of]} \n'.format(map =
+                                                                                                    {'id': v['id'] , 'sz': v['prod_len'], 'fp': v['fp'],'rp' : v['rp'],'f_tm': v['f_tm'],
+                                                                                                    'r_tm': v['r_tm'],'delta_tm': v['delta_tm'], 'p_dimer': v['p_dimer'], 'hom_of': v['hom_of']}))
     #output.write(v['fp'] + '\t' + v['rp'] + '\t'  + v['f_tm'] +  '\t' + v['r_tm'] +'\t' + v['p_dimer'] +  '\n')
 output.close()
 
 pprint.pprint(res)
+
+
+
+for k in primers_dict.keys():
+    print primers_dict[k]['hom_of']
 
 

@@ -6,13 +6,13 @@ from Bio import Entrez
 ####Retrieve Genome###
 ####
 
-# Entrez.email = "Ashley.Doane@gmail.com"     # Always tell NCBI who you are
-# handle = Entrez.efetch(db="Protein", id="CP003885",
-#                        rettype="gp",#or gp for prot sequence,
-#                        retmode="text")
+Entrez.email = "Ashley.Doane@gmail.com"     # Always tell NCBI who you are
+handle = Entrez.efetch(db="Protein", id="CP003885",
+                       rettype="gp",#or gp for prot sequence,
+                       retmode="text")
 
 
-# filename = "Legionella.gbk"
+filename = "Legionella.gbk"
 # if not os.path.isfile(filename):
 #     # Downloading...
 #     net_handle = Entrez.efetch(db="protein", id="CP003885",
@@ -28,20 +28,12 @@ from Bio import Entrez
 # record = SeqIO.read(filename, "genbank")
 ##local input
 record = SeqIO.read(filename, "genbank")
-##record = SeqIO.read("Legionella_pneumophila_Phil/CP003885.gbk")
+##record = SeqIO.read("Legioneslla_pneumophila_Phil/CP003885.gbk")
 #print record
 
 #local source input_handle = open("Legionella_pneumophila_Phil/CP003885.gbk")
 
-output = open("results/legionella_proteins.txt", 'w')
-output.write(str(record.annotations) + '\n')
-output.write('protein_id' + '\t' + 'locus_id' + '\n')
-for rec  in record.features:
-    if rec.type == "CDS":
-        k = '%s' % rec.qualifiers['protein_id']
-        h = '%s' % rec.qualifiers['locus_tag']
-        output.write(k + '\t' + h + "\n")
-output.close()
+
 
 predicted_genes=[]
 leg_genes = {}
@@ -82,13 +74,20 @@ SeqIO.write(sequence, hand, 'fasta')
 hand.close()
 leg_p = SeqIO.parse("Legionella_pneumophila_Phil/CP003885.faa", "fasta")
 
+
+
+
+######
+##Create protein fasta file from gbk input####
+#for whole genome#
+
 from Bio import GenBank
 
 gbk_filename = "Legionella.gbk"
-faa_filename = "Legionella_converted.faa"
+faa_filename = "Legionella_all_converted.faa"
 
-input_handle  = open(gbk_filename, "r")
 output_handle = open(faa_filename, "w")
+input_handle  = open(gbk_filename, "r")
 
 for seq_record in SeqIO.parse(input_handle, "genbank") :
     print "Dealing with GenBank record %s" % seq_record.id
@@ -103,3 +102,34 @@ for seq_record in SeqIO.parse(input_handle, "genbank") :
 output_handle.close()
 input_handle.close()
 
+input_handle = open(faa_filename)
+recfa = SeqIO.to_dict(SeqIO.parse(faa_filename, "fasta"))
+
+
+##Create protein fasta file from gbk input####
+#for selected genes only#
+
+gbk_filename = "Legionella.gbk"
+faa_filename = "results/Legionella_selected.faa"
+
+output_handle = open(faa_filename, "w")
+input_handle  = open(gbk_filename, "r")
+
+for seq_record in SeqIO.parse(input_handle, "genbank") :
+    print "Dealing with GenBank record %s" % seq_record.id
+    for seq_feature in seq_record.features :
+        if seq_feature.type=="CDS" :
+            assert len(seq_feature.qualifiers['translation'])==1
+            if not legdict.get(seq_feature.qualifiers['locus_tag'][0]) == None:
+                output_handle.write(">%s from %s\n%s\n" % (
+                       seq_feature.qualifiers['locus_tag'][0],
+                       seq_record.name,
+                       seq_feature.qualifiers['translation'][0]))
+
+output_handle.close()
+input_handle.close()
+
+input_handle = open(faa_filename, "r")
+rec_dict = SeqIO.to_dict(SeqIO.parse(input_handle, "fasta"))
+
+print len(rec_dict)
